@@ -112,6 +112,35 @@ func (s *ControlState) ParseWirelessValues(values url.Values) {
 type SensorState struct {
 	// sensor info
 	InsideTemperature  float64
-	InsideHumidity     float64
+	InsideHumidity     int
 	OutsideTemperature float64
+}
+
+func (s *SensorState) GetWirelessValues() url.Values {
+	return url.Values{
+		"htemp": []string{fmt.Sprintf("%.2f", s.InsideTemperature)},
+		"hhum":  []string{fmt.Sprintf("%d", s.InsideHumidity)},
+		"otemp": []string{fmt.Sprintf("%.2f", s.OutsideTemperature)},
+	}
+}
+
+func (s *SensorState) ParseWirelessValues(values url.Values) {
+	var err error
+
+	s.InsideTemperature, err = strconv.ParseFloat(values["htemp"][0], 64)
+	if err != nil {
+		fmt.Printf("Warning: Couldn't parse inside temperature: %s", err)
+	}
+
+	insideHumidity, err := strconv.ParseInt(values["hhum"][0], 10, 64)
+	if err != nil {
+		fmt.Printf("Warning: Couldn't parse inside temperature: %s", err)
+	}
+	s.InsideHumidity = int(insideHumidity)
+
+	s.OutsideTemperature, err = strconv.ParseFloat(values["otemp"][0], 64)
+	if err != nil {
+		fmt.Printf("Warning: Couldn't parse inside temperature: %s", err)
+	}
+
 }

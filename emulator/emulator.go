@@ -2,16 +2,16 @@ package emulator
 
 import (
 	"fmt"
+	"log"
 	"net/http"
 	"time"
 
-	"github.com/fatih/structs"
 	"github.com/ninjasphere/go-daikin-ac"
 )
 
 type emulatedWirelessAC struct {
-	controlState daikin.ControlState
-	sensorState  daikin.SensorState
+	daikin.ControlState
+	daikin.SensorState
 }
 
 func StartWirelessAC(port int) {
@@ -28,19 +28,23 @@ func (d *emulatedWirelessAC) start(port int) {
 	go func() {
 		for {
 			time.Sleep(time.Second * 2)
-			d.controlState.TargetTemperature += 0.5
-			d.controlState.TargetHumidity++
+			d.TargetTemperature += 0.5
+			d.TargetHumidity++
+
+			d.InsideTemperature += 0.3
+			d.InsideHumidity++
+			d.OutsideTemperature += 0.6
 		}
 	}()
 
-	fmt.Printf("Starting emulated Daikin Wireless AC on port %d", port)
+	log.Printf("Starting emulated Daikin Wireless AC on port %d", port)
 	go http.ListenAndServe(fmt.Sprintf(":%d", port), nil)
 }
 
 func (d *emulatedWirelessAC) getControlInfo(w http.ResponseWriter, r *http.Request) {
 	var out string
 
-	for k, v := range d.controlState.GetWirelessValues() {
+	for k, v := range d.ControlState.GetWirelessValues() {
 		out += fmt.Sprintf(",%s=%s", k, v[0])
 	}
 
@@ -52,8 +56,8 @@ func (d *emulatedWirelessAC) getControlInfo(w http.ResponseWriter, r *http.Reque
 func (d *emulatedWirelessAC) getSensorInfo(w http.ResponseWriter, r *http.Request) {
 	var out string
 
-	for k, v := range structs.Map(d.controlState) {
-		out += fmt.Sprintf(",%s=%s", k, v)
+	for k, v := range d.SensorState.GetWirelessValues() {
+		out += fmt.Sprintf(",%s=%s", k, v[0])
 	}
 
 	fmt.Fprint(w, out[1:])
@@ -64,7 +68,7 @@ func (d *emulatedWirelessAC) setControlInfo(w http.ResponseWriter, r *http.Reque
 
 	//spew.Dump(r.Form)
 
-	d.controlState.ParseWirelessValues(r.Form)
+	d.ControlState.ParseWirelessValues(r.Form)
 
 	fmt.Fprint(w, "Success? Who knows.")
 }

@@ -21,7 +21,7 @@ func NewWirelessAC(host string, refreshInterval time.Duration) DaikinAC {
 	ac.timer = time.AfterFunc(refreshInterval, func() {
 		_, _, err := ac.RefreshState()
 		if err != nil {
-			fmt.Sprintf("Failed to refresh AC state: %s", err)
+			fmt.Printf("Failed to refresh AC state: %s", err)
 		}
 		ac.timer.Reset(refreshInterval)
 	})
@@ -46,6 +46,14 @@ func (d *wirelessAC) RefreshState() (*ControlState, *SensorState, error) {
 	}
 
 	d.ControlState().ParseWirelessValues(controlVals)
+
+	sensorVals, err := get(d.host, getSensorInfo)
+
+	if err != nil {
+		return nil, nil, err
+	}
+
+	d.SensorState().ParseWirelessValues(sensorVals)
 
 	d.emitStateUpdate()
 
