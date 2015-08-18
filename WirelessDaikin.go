@@ -12,26 +12,42 @@ const (
 )
 
 func NewWirelessAC(host string, refreshInterval time.Duration) DaikinAC {
-	return &wirelessDaikin{baseDaikin{
+	ac := &wirelessAC{baseDaikin: baseDaikin{
 		host:            host,
 		refreshInterval: refreshInterval,
 		controlState:    defaultControlState(),
 	}}
+
+	ac.timer = time.AfterFunc(refreshInterval, func() {
+		_, _, err := ac.RefreshState()
+		if err != nil {
+			fmt.Sprintf("Failed to refresh AC state: %s", err)
+		}
+		ac.timer.Reset(refreshInterval)
+	})
+
+	return ac
 }
 
-type wirelessDaikin struct {
+type wirelessAC struct {
 	baseDaikin
+	timer *time.Timer
 }
 
-func (d *wirelessDaikin) UpdateState() error {
-	query := map[string]string{
-		"pow":    d.controlState.Power.wireless,
-		"mode":   d.controlState.Mode.wireless,
-		"stemp":  fmt.Sprintf("%.2f", d.controlState.TargetTemperature),
-		"shum":   fmt.Sprintf("%d", d.controlState.TargetHumidity),
-		"f_rate": d.controlState.Fan.wireless,
-		"f_dir":  d.controlState.FanDirection.wireless,
+func (d *wirelessAC) SendState() error {
+	return post(d.host, setControlInfo, d.ControlState().GetWirelessValues())
+}
+
+func (d *wirelessAC) RefreshState() (*ControlState, *SensorState, error) {
+	controlVals, err := get(d.host, getControlInfo)
+
+	if err != nil {
+		return nil, nil, err
 	}
 
-	return post(d.host, setControlInfo, query)
+	d.ControlState().ParseWirelessValues(controlVals)
+
+	d.emitStateUpdate()
+
+	return d.ControlState(), d.SensorState(), nil
 }
