@@ -5,7 +5,6 @@ Ported from https://bitbucket.org/JonathanGiles/jdaikin by NinjaBlocks.
 WIP. This hasn't actually been tested with any actual hardware.
 
 TODO:
-- The sensor state isn't done yet.
 - There are other endpoints and data being ignored.
 - Is there any way to do discovery?
 
