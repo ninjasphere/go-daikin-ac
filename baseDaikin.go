@@ -94,19 +94,43 @@ func (s *ControlState) ParseWirelessValues(values url.Values) {
 
 	var err error
 
-	s.TargetTemperature, err = strconv.ParseFloat(values["stemp"][0], 64)
-	if err != nil {
-		fmt.Printf("Warning: Couldn't parse target temperature: %s", err)
+	if has(values, "stemp") {
+
+		s.TargetTemperature, err = strconv.ParseFloat(values["stemp"][0], 64)
+		if err != nil {
+			fmt.Printf("Warning: Couldn't parse target temperature: %s", err)
+		}
 	}
 
-	targetHumidity, err := strconv.ParseInt(values["shum"][0], 10, 64)
-	if err != nil {
-		fmt.Printf("Warning: Couldn't parse target humidity: %s", err)
-	}
-	s.TargetHumidity = int(targetHumidity)
+	if has(values, "shum") {
 
-	s.Fan = parseFan(true, values["f_rate"][0])
-	s.FanDirection = parseFanDirection(true, values["f_dir"][0])
+		targetHumidity, err := strconv.ParseInt(values["shum"][0], 10, 64)
+		if err != nil {
+			fmt.Printf("Warning: Couldn't parse target humidity: %s", err)
+		}
+		s.TargetHumidity = int(targetHumidity)
+
+	}
+
+	if has(values, "f_rate") {
+		s.Fan = parseFan(true, values["f_rate"][0])
+	}
+
+	if has(values, "f_dir") {
+		s.FanDirection = parseFanDirection(true, values["f_dir"][0])
+	}
+}
+func has(values url.Values, name string) bool {
+	_, ok := values[name]
+	return ok
+}
+func getVal(values url.Values, name string) (val string) {
+
+	if v, ok := values[name]; ok {
+		val = v[0]
+	}
+
+	return
 }
 
 type SensorState struct {
