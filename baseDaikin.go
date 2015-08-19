@@ -16,7 +16,7 @@ type baseDaikin struct {
 	listeners    []chan ACState
 }
 
-type DaikinAC interface {
+type AC interface {
 	SendState() error
 	RefreshState() (*ControlState, *SensorState, error)
 	ControlState() *ControlState

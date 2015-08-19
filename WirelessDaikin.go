@@ -11,7 +11,7 @@ const (
 	getSensorInfo  = "/aircon/get_sensor_info"
 )
 
-func NewWirelessAC(host string, refreshInterval time.Duration) DaikinAC {
+func NewWirelessAC(host string, refreshInterval time.Duration) AC {
 	ac := &wirelessAC{baseDaikin: baseDaikin{
 		host:            host,
 		refreshInterval: refreshInterval,
