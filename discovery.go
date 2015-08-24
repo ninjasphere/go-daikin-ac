@@ -63,7 +63,7 @@ func Discover(discoverInterval time.Duration) (chan AC, error) {
 				log.Printf("Found a potential daikin AC: %s (mac: %s)", ip, mac)
 
 				ac := NewWirelessAC(ip)
-				info, err := ac.refreshBasicInfo()
+				info, err := ac.RefreshBasicInfo()
 
 				if err == nil && info != nil && info.Ret == "OK" && info.Type == "aircon" {
 					if existing, ok := seen[info.Id]; ok {

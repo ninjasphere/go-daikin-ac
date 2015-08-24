@@ -20,6 +20,7 @@ type baseDaikin struct {
 
 type AC interface {
 	BasicInfo() *BasicInfo
+	RefreshBasicInfo() (*BasicInfo, error)
 	SendState() error
 	RefreshState() (*ControlState, *SensorState, error)
 	ControlState() *ControlState

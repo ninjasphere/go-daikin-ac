@@ -40,7 +40,7 @@ func (d *wirelessAC) SendState() error {
 	return post(d.host, setControlInfo, d.ControlState().GetWirelessValues())
 }
 
-func (d *wirelessAC) refreshBasicInfo() (*BasicInfo, error) {
+func (d *wirelessAC) RefreshBasicInfo() (*BasicInfo, error) {
 	vals, err := get(d.host, basicInfo)
 
 	if err != nil {
@@ -49,7 +49,14 @@ func (d *wirelessAC) refreshBasicInfo() (*BasicInfo, error) {
 
 	info := &BasicInfo{}
 
-	return info, mapValues(info, vals)
+	err = mapValues(info, vals)
+	if err != nil {
+		return nil, err
+	}
+
+	d.info = info
+
+	return info, nil
 }
 
 func (d *wirelessAC) RefreshState() (*ControlState, *SensorState, error) {
