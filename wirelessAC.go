@@ -6,25 +6,17 @@ import (
 )
 
 const (
+	basicInfo      = "/common/basic_info"
 	getControlInfo = "/aircon/get_control_info"
 	setControlInfo = "/aircon/set_control_info"
 	getSensorInfo  = "/aircon/get_sensor_info"
 )
 
-func NewWirelessAC(host string, refreshInterval time.Duration) AC {
+func NewWirelessAC(host string) *wirelessAC {
 	ac := &wirelessAC{baseDaikin: baseDaikin{
-		host:            host,
-		refreshInterval: refreshInterval,
-		controlState:    defaultControlState(),
+		host:         host,
+		controlState: defaultControlState(),
 	}}
-
-	ac.timer = time.AfterFunc(refreshInterval, func() {
-		_, _, err := ac.RefreshState()
-		if err != nil {
-			fmt.Printf("Failed to refresh AC state: %s", err)
-		}
-		ac.timer.Reset(refreshInterval)
-	})
 
 	return ac
 }
@@ -34,8 +26,30 @@ type wirelessAC struct {
 	timer *time.Timer
 }
 
+func (d *wirelessAC) AutoRefresh(refreshInterval time.Duration) {
+	d.timer = time.AfterFunc(refreshInterval, func() {
+		_, _, err := d.RefreshState()
+		if err != nil {
+			fmt.Printf("Failed to refresh AC state: %s", err)
+		}
+		d.timer.Reset(refreshInterval)
+	})
+}
+
 func (d *wirelessAC) SendState() error {
 	return post(d.host, setControlInfo, d.ControlState().GetWirelessValues())
+}
+
+func (d *wirelessAC) refreshBasicInfo() (*BasicInfo, error) {
+	vals, err := get(d.host, basicInfo)
+
+	if err != nil {
+		return nil, err
+	}
+
+	info := &BasicInfo{}
+
+	return info, mapValues(info, vals)
 }
 
 func (d *wirelessAC) RefreshState() (*ControlState, *SensorState, error) {

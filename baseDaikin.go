@@ -2,12 +2,14 @@ package daikin
 
 import (
 	"fmt"
+	"log"
 	"net/url"
 	"strconv"
 	"time"
 )
 
 type baseDaikin struct {
+	info            *BasicInfo
 	host            string
 	refreshInterval time.Duration
 
@@ -17,6 +19,7 @@ type baseDaikin struct {
 }
 
 type AC interface {
+	BasicInfo() *BasicInfo
 	SendState() error
 	RefreshState() (*ControlState, *SensorState, error)
 	ControlState() *ControlState
@@ -30,6 +33,10 @@ func (d *baseDaikin) ControlState() *ControlState {
 
 func (d *baseDaikin) SensorState() *SensorState {
 	return &d.sensorState
+}
+
+func (d *baseDaikin) BasicInfo() *BasicInfo {
+	return d.info
 }
 
 func (d *baseDaikin) OnStateUpdate() chan ACState {
@@ -98,7 +105,7 @@ func (s *ControlState) ParseWirelessValues(values url.Values) {
 
 		s.TargetTemperature, err = strconv.ParseFloat(values["stemp"][0], 64)
 		if err != nil {
-			fmt.Printf("Warning: Couldn't parse target temperature: %s", err)
+			log.Printf("Warning: Couldn't parse target temperature: %s - %s", values["stemp"][0], err)
 		}
 	}
 
@@ -106,7 +113,7 @@ func (s *ControlState) ParseWirelessValues(values url.Values) {
 
 		targetHumidity, err := strconv.ParseInt(values["shum"][0], 10, 64)
 		if err != nil {
-			fmt.Printf("Warning: Couldn't parse target humidity: %s", err)
+			log.Printf("Warning: Couldn't parse target humidity: %s", err)
 		}
 		s.TargetHumidity = int(targetHumidity)
 
@@ -153,18 +160,18 @@ func (s *SensorState) ParseWirelessValues(values url.Values) {
 
 	s.InsideTemperature, err = strconv.ParseFloat(values["htemp"][0], 64)
 	if err != nil {
-		fmt.Printf("Warning: Couldn't parse inside temperature: %s", err)
+		log.Printf("Warning: Couldn't parse inside temperature: %s - %s", values["htemp"][0], err)
 	}
 
 	insideHumidity, err := strconv.ParseInt(values["hhum"][0], 10, 64)
 	if err != nil {
-		fmt.Printf("Warning: Couldn't parse inside temperature: %s", err)
+		log.Printf("Warning: Couldn't parse inside temperature: %s", err)
 	}
 	s.InsideHumidity = int(insideHumidity)
 
 	s.OutsideTemperature, err = strconv.ParseFloat(values["otemp"][0], 64)
 	if err != nil {
-		fmt.Printf("Warning: Couldn't parse inside temperature: %s", err)
+		log.Printf("Warning: Couldn't parse inside temperature: %s", err)
 	}
 
 }
