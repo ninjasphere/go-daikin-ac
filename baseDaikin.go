@@ -19,6 +19,7 @@ type baseDaikin struct {
 }
 
 type AC interface {
+	AutoRefresh(interval time.Duration)
 	BasicInfo() *BasicInfo
 	RefreshBasicInfo() (*BasicInfo, error)
 	SendState() error

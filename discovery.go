@@ -52,7 +52,7 @@ func Discover(discoverInterval time.Duration) (chan AC, error) {
 			cmd := exec.Command("ping", "-w", "5s", "-b", ip)
 			err := cmd.Run()
 			if err != nil {
-				log.Printf("Failed to broadcast ping: %s", err)
+				log.Printf("Failed to broadcast ping %s: %s", ip, err)
 			}
 		}
 
