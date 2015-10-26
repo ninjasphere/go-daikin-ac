@@ -4,7 +4,6 @@ import (
 	"log"
 	"net"
 	"os/exec"
-	"strings"
 	"time"
 
 	"github.com/mostlygeek/arp"
@@ -20,7 +19,7 @@ func Discover(discoverInterval time.Duration) (chan AC, error) {
 
 	found := make(chan AC)
 
-	clientAddr, err := net.ResolveUDPAddr("udp", udpClient)
+	/*clientAddr, err := net.ResolveUDPAddr("udp", udpClient)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -37,7 +36,7 @@ func Discover(discoverInterval time.Duration) (chan AC, error) {
 	ping := func() error {
 		_, err = l.WriteToUDP([]byte("DAIKIN_UDP/common/basic_info\n"), hostAddr)
 		return err
-	}
+	}*/
 
 	arp := func() error {
 		// We send out a broadcast pings first...
@@ -59,24 +58,24 @@ func Discover(discoverInterval time.Duration) (chan AC, error) {
 		for ip := range arp.Table() {
 			mac := arp.Search(ip)
 
-			if strings.HasPrefix(strings.ToUpper(mac), "90:B6:86") { // Murata Manufacturing Co., Ltd.
-				log.Printf("Found a potential daikin AC: %s (mac: %s)", ip, mac)
+			//if strings.HasPrefix(strings.ToUpper(mac), "90:B6:86") { // Murata Manufacturing Co., Ltd.
+			log.Printf("Found a potential daikin AC: %s (mac: %s)", ip, mac)
 
-				ac := NewWirelessAC(ip)
-				info, err := ac.RefreshBasicInfo()
+			ac := NewWirelessAC(ip)
+			info, err := ac.RefreshBasicInfo()
 
-				if err == nil && info != nil && info.Ret == "OK" && info.Type == "aircon" {
-					if existing, ok := seen[info.Id]; ok {
-						existing.host = ip
-					} else {
-						seen[info.Id] = ac
-						found <- ac
-					}
+			if err == nil && info != nil && info.Ret == "OK" && info.Type == "aircon" {
+				if existing, ok := seen[info.Id]; ok {
+					existing.host = ip
+				} else {
+					seen[info.Id] = ac
+					found <- ac
 				}
-
-			} else {
-				//log.Printf("Fail: %s %s", mac, ip)
 			}
+
+			//} else {
+			//log.Printf("Fail: %s %s", mac, ip)
+			//}
 
 		}
 
@@ -92,18 +91,18 @@ func Discover(discoverInterval time.Duration) (chan AC, error) {
 				log.Printf("Failed to discover daikin ACs using arp table: %s", err)
 			}
 
-			time.Sleep(time.Second * 5)
+			//time.Sleep(time.Second * 5)
 
 			//log.Printf("Searching using UDP...")
-			if err := ping(); err != nil {
-				log.Printf("Failed to discover daikin ACs: %s", err)
-			}
+			//if err := ping(); err != nil {
+			//log.Printf("Failed to discover daikin ACs using udp: %s", err)
+			//}
 
 			t.Reset(discoverInterval)
 		})
 	}()
 
-	l.SetReadBuffer(maxDatagramSize)
+	/*l.SetReadBuffer(maxDatagramSize)
 
 	go func() {
 
@@ -137,7 +136,7 @@ func Discover(discoverInterval time.Duration) (chan AC, error) {
 
 	if err := ping(); err != nil {
 		return nil, err
-	}
+	}*/
 
 	return found, nil
 }
