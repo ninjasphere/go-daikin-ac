@@ -97,11 +97,15 @@ func (s *ControlState) GetWirelessValues() url.Values {
 	}
 }
 
-func (s *ControlState) ParseWirelessValues(values url.Values) {
-	s.Power = parsePower(true, values["pow"][0])
-	s.Mode = parseMode(true, values["mode"][0])
-
+func (s *ControlState) ParseWirelessValues(values url.Values) error {
 	var err error
+
+	if len(values["pow"]) < 1 {
+		return fmt.Errorf("pow has zero length")
+	}
+	s.Power = parsePower(true, values["pow"][0])
+
+	s.Mode = parseMode(true, values["mode"][0])
 
 	if has(values, "stemp") {
 
@@ -128,6 +132,8 @@ func (s *ControlState) ParseWirelessValues(values url.Values) {
 	if has(values, "f_dir") {
 		s.FanDirection = parseFanDirection(true, values["f_dir"][0])
 	}
+
+	return nil
 }
 func has(values url.Values, name string) bool {
 	_, ok := values[name]

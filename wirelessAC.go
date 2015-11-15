@@ -66,7 +66,9 @@ func (d *wirelessAC) RefreshState() (*ControlState, *SensorState, error) {
 		return nil, nil, err
 	}
 
-	d.ControlState().ParseWirelessValues(controlVals)
+	if err := d.ControlState().ParseWirelessValues(controlVals); err != nil {
+		return nil, nil, err
+	}
 
 	sensorVals, err := get(d.host, getSensorInfo)
 
