@@ -30,7 +30,7 @@ func (d *wirelessAC) AutoRefresh(refreshInterval time.Duration) {
 	d.timer = time.AfterFunc(refreshInterval, func() {
 		_, _, err := d.RefreshState()
 		if err != nil {
-			fmt.Printf("Failed to refresh AC state: %s", err)
+			fmt.Printf("Failed to refresh AC state: %s\n", err)
 		}
 		d.timer.Reset(refreshInterval)
 	})
@@ -67,7 +67,7 @@ func (d *wirelessAC) RefreshState() (*ControlState, *SensorState, error) {
 	}
 
 	if err := d.ControlState().ParseWirelessValues(controlVals); err != nil {
-		return nil, nil, err
+		return nil, nil, fmt.Errorf("failed: host=%s: %s", d.host, err)
 	}
 
 	sensorVals, err := get(d.host, getSensorInfo)
