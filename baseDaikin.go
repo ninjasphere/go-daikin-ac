@@ -100,6 +100,10 @@ func (s *ControlState) GetWirelessValues() url.Values {
 func (s *ControlState) ParseWirelessValues(values url.Values) error {
 	var err error
 
+	if len(values["ret"]) > 0 && values["ret"][0] != "OK" {
+		return fmt.Errorf("error: %s", values["ret"])
+	}
+
 	if len(values["pow"]) < 1 {
 		return fmt.Errorf("pow has zero length")
 	}
