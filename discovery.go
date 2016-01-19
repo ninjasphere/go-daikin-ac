@@ -1,9 +1,11 @@
 package daikin
 
 import (
+	"github.com/ninjasphere/go-ninja/config"
 	"log"
 	"net"
 	"os/exec"
+	"strings"
 	"time"
 
 	"github.com/mostlygeek/arp"
@@ -12,6 +14,7 @@ import (
 var maxDatagramSize = 8192
 var udpHost = "224.0.0.1:30050"
 var udpClient = "224.0.0.1:30000"
+var hemsPrefix = config.String("192.168.12", "go-daikin.hems-prefix")
 
 func Discover(discoverInterval time.Duration) (chan AC, error) {
 
@@ -57,6 +60,11 @@ func Discover(discoverInterval time.Duration) (chan AC, error) {
 
 		for ip := range arp.Table() {
 			mac := arp.Search(ip)
+
+			if hemsPrefix != "" && !strings.HasPrefix(ip, hemsPrefix) {
+				log.Printf("skipped non-hems address: %s", ip)
+				continue
+			}
 
 			//if strings.HasPrefix(strings.ToUpper(mac), "90:B6:86") { // Murata Manufacturing Co., Ltd.
 			log.Printf("Found a potential daikin AC: %s (mac: %s)", ip, mac)
